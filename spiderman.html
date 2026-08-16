@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spider-Man Web Camera</title>
+
+    <title>Spider-Man Gesture</title>
 
     <style>
         * {
@@ -20,12 +21,57 @@
         }
 
         header {
-            padding: 25px;
+            padding: 30px 20px 15px;
         }
 
         h1 {
-            margin: 0;
+            margin: 0 0 10px;
             font-size: 32px;
+        }
+
+        header p {
+            color: #ccc;
+            margin: 0;
+        }
+
+        .buttons {
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 13px 22px;
+            border: 0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 6px;
+            font-weight: bold;
+        }
+
+        .start {
+            background: #e50914;
+            color: white;
+        }
+
+        .stop {
+            background: #444;
+            color: white;
+        }
+
+        .back {
+            background: #222;
+            color: white;
+            border: 1px solid #555;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        #status {
+            margin: 15px auto 20px;
+            font-size: 17px;
+            color: #ddd;
         }
 
         .camera-box {
@@ -36,6 +82,7 @@
             border-radius: 18px;
             border: 2px solid #444;
             background: #111;
+            min-height: 300px;
         }
 
         video {
@@ -53,28 +100,22 @@
             pointer-events: none;
         }
 
-        #status {
-            margin: 18px;
-            font-size: 18px;
+        .info {
+            width: min(900px, 95vw);
+            margin: 20px auto;
+            padding: 18px;
+            border-radius: 14px;
+            background: #151515;
+            border: 1px solid #333;
         }
 
-        button {
-            padding: 12px 22px;
-            border: 0;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 10px;
+        .info h2 {
+            margin-top: 0;
         }
 
-        .back {
-            background: #333;
-            color: white;
-        }
-
-        .start {
-            background: #e50914;
-            color: white;
+        .info p {
+            color: #ccc;
+            line-height: 1.6;
         }
     </style>
 </head>
@@ -82,223 +123,316 @@
 <body>
 
 <header>
-    <h1>🕷️ Spider-Man Web Camera</h1>
-    <p>Tunjukkan pose Spider-Man untuk mengeluarkan jaring 🕸️</p>
+
+    <h1>🕷️ Spider-Man Gesture</h1>
+
+    <p>
+        Buat pose Spider-Man untuk mengeluarkan jaring 🕸️
+    </p>
+
 </header>
 
-<button class="start" onclick="startCamera()">
-    📷 Mulai Kamera
-</button>
 
-<button class="back" onclick="location.href='index.html'">
-    ← Kembali
-</button>
+<div class="buttons">
+
+    <button
+        class="start"
+        onclick="startCamera()"
+    >
+        📷 Mulai Kamera
+    </button>
+
+
+    <button
+        class="stop"
+        onclick="stopCamera()"
+    >
+        ⛔ Stop Kamera
+    </button>
+
+
+    <button
+        class="back"
+        onclick="location.href='index.html'"
+    >
+        ← Kembali
+    </button>
+
+</div>
+
 
 <div id="status">
     Kamera belum dimulai
 </div>
 
+
 <div class="camera-box">
-    <video id="video" autoplay playsinline></video>
-    <canvas id="canvas"></canvas>
+
+    <video
+        id="video"
+        autoplay
+        playsinline
+    ></video>
+
+    <canvas
+        id="canvas"
+    ></canvas>
+
 </div>
 
-<script type="module">
 
-import {
-    HandLandmarker,
-    FilesetResolver
-} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22";
+<div class="info">
 
-const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-const statusText = document.getElementById("status");
+    <h2>🕸️ Cara Menggunakan</h2>
 
-let handLandmarker;
+    <p>
+        1. Klik <b>📷 Mulai Kamera</b>
+    </p>
+
+    <p>
+        2. Izinkan akses kamera ketika browser meminta izin.
+    </p>
+
+    <p>
+        3. Tunjukkan pose Spider-Man:
+        <b>telunjuk dan kelingking terbuka</b>,
+        sedangkan jari tengah dan jari manis dilipat.
+    </p>
+
+    <p>
+        4. Jika gesture terdeteksi,
+        jaring 🕸️ akan muncul dari posisi telunjuk.
+    </p>
+
+</div>
+
+
+<script>
+
+const video =
+    document.getElementById("video");
+
+const canvas =
+    document.getElementById("canvas");
+
+const ctx =
+    canvas.getContext("2d");
+
+const statusText =
+    document.getElementById("status");
+
+
+let handLandmarker = null;
+
 let running = false;
 
-async function setupMediaPipe() {
+let mediaPipeLoaded = false;
 
-    const vision = await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm"
-    );
+let cameraStream = null;
 
-    handLandmarker = await HandLandmarker.createFromOptions(
-        vision,
-        {
-            baseOptions: {
-                modelAssetPath:
-                    "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
-            },
 
-            runningMode: "VIDEO",
-            numHands: 2,
-            minHandDetectionConfidence: 0.6,
-            minHandPresenceConfidence: 0.6,
-            minTrackingConfidence: 0.6
-        }
-    );
-}
+// ========================================
+// MULAI KAMERA
+// ========================================
 
-window.startCamera = async function () {
+async function startCamera() {
 
     try {
 
         statusText.textContent =
-            "Memuat deteksi tangan...";
+            "📷 Membuka kamera...";
 
-        if (!handLandmarker) {
-            await setupMediaPipe();
+
+        // Cek apakah browser mendukung kamera
+
+        if (
+            !navigator.mediaDevices ||
+            !navigator.mediaDevices.getUserMedia
+        ) {
+
+            throw new Error(
+                "Browser tidak mendukung kamera."
+            );
+
         }
 
-        const stream =
+
+        // ================================
+        // BUKA KAMERA
+        // ================================
+
+        cameraStream =
             await navigator.mediaDevices.getUserMedia({
-                video: true,
+
+                video: {
+                    facingMode: "user"
+                },
+
                 audio: false
+
             });
 
-        video.srcObject = stream;
+
+        video.srcObject =
+            cameraStream;
+
 
         await video.play();
 
-        running = true;
-
-        statusText.textContent =
-            "📷 Kamera aktif — tunjukkan pose Spider-Man!";
 
         resizeCanvas();
 
+
+        running = true;
+
+
+        statusText.textContent =
+            "📷 Kamera aktif! Memuat deteksi tangan...";
+
+
+        // ================================
+        // LOAD MEDIAPIPE
+        // ================================
+
+        if (!mediaPipeLoaded) {
+
+            const vision =
+                await import(
+                    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22"
+                );
+
+
+            const FilesetResolver =
+                vision.FilesetResolver;
+
+            const HandLandmarker =
+                vision.HandLandmarker;
+
+
+            const fileset =
+                await FilesetResolver.forVisionTasks(
+
+                    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm"
+
+                );
+
+
+            handLandmarker =
+                await HandLandmarker.createFromOptions(
+
+                    fileset,
+
+                    {
+
+                        baseOptions: {
+
+                            modelAssetPath:
+                                "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
+
+                        },
+
+
+                        runningMode: "VIDEO",
+
+
+                        numHands: 2,
+
+
+                        minHandDetectionConfidence:
+                            0.6,
+
+
+                        minHandPresenceConfidence:
+                            0.6,
+
+
+                        minTrackingConfidence:
+                            0.6
+
+                    }
+
+                );
+
+
+            mediaPipeLoaded = true;
+
+        }
+
+
+        statusText.textContent =
+            "🕷️ Kamera aktif — tunjukkan pose Spider-Man!";
+
+
         detectHands();
+
 
     } catch (error) {
 
         console.error(error);
 
+
         statusText.textContent =
-            "❌ Kamera tidak dapat digunakan. Izinkan akses kamera.";
+            "❌ Kamera tidak dapat digunakan.";
+
+
+        alert(
+            "Kamera tidak bisa dibuka.\n\n" +
+            "Pastikan kamu mengizinkan akses kamera."
+        );
+
     }
-};
+
+}
+
+
+// ========================================
+// STOP KAMERA
+// ========================================
+
+function stopCamera() {
+
+    running = false;
+
+
+    if (cameraStream) {
+
+        cameraStream
+            .getTracks()
+            .forEach(
+                track => track.stop()
+            );
+
+        cameraStream = null;
+
+    }
+
+
+    video.srcObject = null;
+
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    statusText.textContent =
+        "⛔ Kamera dihentikan.";
+
+}
+
+
+// ========================================
+// UKURAN CANVAS
+// ========================================
 
 function resizeCanvas() {
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-}
-
-video.addEventListener("loadedmetadata", resizeCanvas);
-
-function isSpiderManPose(hand) {
-
-    const indexTip = hand[8];
-    const indexPip = hand[6];
-
-    const middleTip = hand[12];
-    const middlePip = hand[10];
-
-    const ringTip = hand[16];
-    const ringPip = hand[14];
-
-    const pinkyTip = hand[20];
-    const pinkyPip = hand[18];
-
-    const indexUp =
-        indexTip.y < indexPip.y;
-
-    const pinkyUp =
-        pinkyTip.y < pinkyPip.y;
-
-    const middleDown =
-        middleTip.y > middlePip.y;
-
-    const ringDown =
-        ringTip.y > ringPip.y;
-
-    return (
-        indexUp &&
-        pinkyUp &&
-        middleDown &&
-        ringDown
-    );
-}
-
-function drawWeb(x, y) {
-
-    ctx.save();
-
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 2;
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = "white";
-
-    const maxLength = 600;
-
-    // Garis jaring
-    for (let angle = -90; angle <= 90; angle += 10) {
-
-        const rad =
-            angle * Math.PI / 180;
-
-        const endX =
-            x + Math.cos(rad) * maxLength;
-
-        const endY =
-            y + Math.sin(rad) * maxLength;
-
-        ctx.beginPath();
-
-        ctx.moveTo(x, y);
-        ctx.lineTo(endX, endY);
-
-        ctx.stroke();
-    }
-
-    // Lingkaran jaring
-    for (let radius = 50; radius <= 600; radius += 45) {
-
-        ctx.beginPath();
-
-        for (
-            let angle = -90;
-            angle <= 90;
-            angle += 4
-        ) {
-
-            const rad =
-                angle * Math.PI / 180;
-
-            const px =
-                x + Math.cos(rad) * radius;
-
-            const py =
-                y + Math.sin(rad) * radius;
-
-            if (angle === -90) {
-                ctx.moveTo(px, py);
-            } else {
-                ctx.lineTo(px, py);
-            }
-        }
-
-        ctx.stroke();
-    }
-
-    // Titik pusat
-    ctx.beginPath();
-    ctx.arc(x, y, 8, 0, Math.PI * 2);
-    ctx.fillStyle = "white";
-    ctx.fill();
-
-    ctx.restore();
-}
-
-async function detectHands() {
-
-    if (!running) return;
-
     if (
-        video.readyState >= 2 &&
-        handLandmarker
+        video.videoWidth > 0 &&
+        video.videoHeight > 0
     ) {
 
         canvas.width =
@@ -307,6 +441,293 @@ async function detectHands() {
         canvas.height =
             video.videoHeight;
 
+    }
+
+}
+
+
+video.addEventListener(
+    "loadedmetadata",
+    resizeCanvas
+);
+
+
+// ========================================
+// DETEKSI POSE SPIDER-MAN
+// ========================================
+
+function isSpiderManPose(hand) {
+
+    const indexTip =
+        hand[8];
+
+    const indexPip =
+        hand[6];
+
+
+    const middleTip =
+        hand[12];
+
+    const middlePip =
+        hand[10];
+
+
+    const ringTip =
+        hand[16];
+
+    const ringPip =
+        hand[14];
+
+
+    const pinkyTip =
+        hand[20];
+
+    const pinkyPip =
+        hand[18];
+
+
+    // Telunjuk naik
+
+    const indexUp =
+        indexTip.y <
+        indexPip.y;
+
+
+    // Kelingking naik
+
+    const pinkyUp =
+        pinkyTip.y <
+        pinkyPip.y;
+
+
+    // Jari tengah dilipat
+
+    const middleDown =
+        middleTip.y >
+        middlePip.y;
+
+
+    // Jari manis dilipat
+
+    const ringDown =
+        ringTip.y >
+        ringPip.y;
+
+
+    return (
+
+        indexUp &&
+        pinkyUp &&
+        middleDown &&
+        ringDown
+
+    );
+
+}
+
+
+// ========================================
+// GAMBAR JARING
+// ========================================
+
+function drawWeb(x, y) {
+
+    ctx.save();
+
+
+    ctx.strokeStyle =
+        "white";
+
+
+    ctx.lineWidth =
+        2;
+
+
+    ctx.shadowBlur =
+        8;
+
+
+    ctx.shadowColor =
+        "white";
+
+
+    const maxLength =
+        650;
+
+
+    // ====================================
+    // GARIS RADIAL
+    // ====================================
+
+    for (
+        let angle = -90;
+        angle <= 90;
+        angle += 10
+    ) {
+
+        const rad =
+            angle *
+            Math.PI /
+            180;
+
+
+        const endX =
+            x +
+            Math.cos(rad) *
+            maxLength;
+
+
+        const endY =
+            y +
+            Math.sin(rad) *
+            maxLength;
+
+
+        ctx.beginPath();
+
+
+        ctx.moveTo(
+            x,
+            y
+        );
+
+
+        ctx.lineTo(
+            endX,
+            endY
+        );
+
+
+        ctx.stroke();
+
+    }
+
+
+    // ====================================
+    // LINGKARAN JARING
+    // ====================================
+
+    for (
+        let radius = 50;
+        radius <= 600;
+        radius += 45
+    ) {
+
+        ctx.beginPath();
+
+
+        for (
+            let angle = -90;
+            angle <= 90;
+            angle += 4
+        ) {
+
+            const rad =
+                angle *
+                Math.PI /
+                180;
+
+
+            const px =
+                x +
+                Math.cos(rad) *
+                radius;
+
+
+            const py =
+                y +
+                Math.sin(rad) *
+                radius;
+
+
+            if (
+                angle === -90
+            ) {
+
+                ctx.moveTo(
+                    px,
+                    py
+                );
+
+            } else {
+
+                ctx.lineTo(
+                    px,
+                    py
+                );
+
+            }
+
+        }
+
+
+        ctx.stroke();
+
+    }
+
+
+    // ====================================
+    // TITIK TENGAH
+    // ====================================
+
+    ctx.beginPath();
+
+
+    ctx.arc(
+        x,
+        y,
+        8,
+        0,
+        Math.PI * 2
+    );
+
+
+    ctx.fillStyle =
+        "white";
+
+
+    ctx.fill();
+
+
+    ctx.restore();
+
+}
+
+
+// ========================================
+// DETEKSI TANGAN
+// ========================================
+
+function detectHands() {
+
+    if (
+        !running ||
+        !handLandmarker
+    ) {
+
+        if (running) {
+
+            requestAnimationFrame(
+                detectHands
+            );
+
+        }
+
+        return;
+
+    }
+
+
+    if (
+        video.readyState >= 2
+    ) {
+
+
+        resizeCanvas();
+
+
+        // Bersihkan canvas
+
         ctx.clearRect(
             0,
             0,
@@ -314,43 +735,86 @@ async function detectHands() {
             canvas.height
         );
 
+
+        // Deteksi tangan
+
         const result =
             handLandmarker.detectForVideo(
+
                 video,
+
                 performance.now()
+
             );
 
-        let spiderDetected = false;
 
-        if (result.landmarks) {
+        let spiderDetected =
+            false;
+
+
+        // =================================
+        // CEK SEMUA TANGAN
+        // =================================
+
+        if (
+            result.landmarks &&
+            result.landmarks.length > 0
+        ) {
 
             for (
-                const hand of result.landmarks
+                const hand
+                of result.landmarks
             ) {
 
-                if (isSpiderManPose(hand)) {
 
-                    spiderDetected = true;
+                if (
+                    isSpiderManPose(hand)
+                ) {
+
+                    spiderDetected =
+                        true;
+
+
+                    // Posisi telunjuk
 
                     const index =
                         hand[8];
+
 
                     const x =
                         index.x *
                         canvas.width;
 
+
                     const y =
                         index.y *
                         canvas.height;
 
-                    drawWeb(x, y);
+
+                    // Gambar jaring
+
+                    drawWeb(
+                        x,
+                        y
+                    );
+
 
                     break;
+
                 }
+
             }
+
         }
 
-        if (spiderDetected) {
+
+        // =================================
+        // STATUS
+        // =================================
+
+        if (
+            spiderDetected
+        ) {
 
             statusText.textContent =
                 "🕸️ SPIDER WEB AKTIF!";
@@ -358,11 +822,17 @@ async function detectHands() {
         } else {
 
             statusText.textContent =
-                "📷 Kamera aktif — tunjukkan pose Spider-Man!";
+                "🕷️ Kamera aktif — buat pose Spider-Man!";
+
         }
+
     }
 
-    requestAnimationFrame(detectHands);
+
+    requestAnimationFrame(
+        detectHands
+    );
+
 }
 
 </script>
