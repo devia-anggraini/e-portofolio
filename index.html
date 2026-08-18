@@ -27,8 +27,29 @@ a {
 .container{width:min(1120px,92%);margin:auto}
 nav{position:fixed;top:0;width:100%;z-index:10;background:rgba(7,9,13,.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .nav{height:70px;display:flex;align-items:center;justify-content:space-between}
-.logo{font-weight:900;letter-spacing:2px}.logo span{color:var(--green)}
-.navlinks{display:flex;gap:22px;color:#b7c0cd;font-size:.88rem}.navlinks a:hover{color:var(--green)}
+.logo {
+    color: #f5f5f5;
+    font-weight: 900;
+    letter-spacing: 2px;
+}
+
+.logo span {
+    color: #f5f5f5;
+}
+.navlinks {
+    display: flex;
+    gap: 22px;
+    font-size: .88rem;
+}
+
+.navlinks a {
+    color: #e5e7eb;
+    text-decoration: none;
+}
+
+.navlinks a:hover {
+    color: #ffffff;
+}
 .hero{min-height:100vh;display:flex;align-items:center;padding-top:70px}
 .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:60px;align-items:center}
 .terminal-tag{font-family:monospace;color:var(--green);margin-bottom:18px}
