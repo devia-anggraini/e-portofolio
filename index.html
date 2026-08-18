@@ -5,51 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>E-Portfolio | Devia Anggraini</title>
 <style>
-:root{--bg:#080d18;--card:#101827;--text:#f2f5fa;--muted:#8d9aad;--line:#1d2a3d;--bluee:#38bdf8;--purple:#8b5cf6}
+:root{--bg:#07090d;--card:#0d1118;--text:#eef2f7;--muted:#8d98a8;--line:#1c2633;--green:#5cff9d;--cyan:#52d9ff}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body {
-    font-family: Inter, Segoe UI, Arial, sans-serif;
-    background:
-        radial-gradient(circle at 12% 25%, rgba(100, 160, 220, 0.12), transparent 28%),
-        radial-gradient(circle at 85% 70%, rgba(120, 150, 210, 0.08), transparent 30%),
-        #080d18;
-    color: var(--text);
-    line-height: 1.6;
-}
-    color: var(--text);
-    line-height: 1.6;
-}
-    
-a {
-    text-decoration: none;color:inherit
-    }
+body{font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+a{text-decoration:none;color:inherit}
 .container{width:min(1120px,92%);margin:auto}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.045;background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:45px 45px}
 nav{position:fixed;top:0;width:100%;z-index:10;background:rgba(7,9,13,.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .nav{height:70px;display:flex;align-items:center;justify-content:space-between}
-.logo {
-    color: #f5f5f5;
-    font-weight: 900;
-    letter-spacing: 2px;
-}
-
-.logo span {
-    color: #f5f5f5;
-}
-.navlinks {
-    display: flex;
-    gap: 22px;
-    font-size: .88rem;
-}
-
-.navlinks a {
-    color: #e5e7eb;
-    text-decoration: none;
-}
-
-.navlinks a:hover {
-    color: #ffffff;
-}
+.logo{font-weight:900;letter-spacing:2px}.logo span{color:var(--green)}
+.navlinks{display:flex;gap:22px;color:#b7c0cd;font-size:.88rem}.navlinks a:hover{color:var(--green)}
 .hero{min-height:100vh;display:flex;align-items:center;padding-top:70px}
 .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:60px;align-items:center}
 .terminal-tag{font-family:monospace;color:var(--green);margin-bottom:18px}
@@ -57,17 +23,7 @@ h1{font-size:clamp(3rem,7vw,6.2rem);line-height:.92;letter-spacing:-5px}
 h1 span{color:var(--green)}
 .hero p{color:var(--muted);max-width:680px;font-size:1.05rem;margin:22px 0}
 .buttons{display:flex;gap:12px;flex-wrap:wrap}
-.btn {
-    display: inline-block;
-    padding: 11px 17px;
-    border: 1px solid var(--line);
-    border-radius: 9px;
-    background: #0d1219;
-    font-weight: 700;
-    transition: .2s;
-    color: #f5f5f5;
-    text-decoration: none;
-}
+.btn{display:inline-block;padding:11px 17px;border:1px solid var(--line);border-radius:9px;background:#0d1219;font-weight:700;transition:.2s}
 .btn.primary{background:var(--green);color:#06100a;border-color:var(--green)}
 .btn:hover{transform:translateY(-2px)}
 .profile-photo{width:min(380px,80vw);aspect-ratio:1/1;margin:auto;border-radius:50%;padding:5px;background:linear-gradient(135deg,var(--green),var(--cyan));box-shadow:0 0 60px rgba(92,255,157,.18);overflow:hidden}
@@ -107,13 +63,14 @@ Turning ideas into projects and learning into experience.</div>
 <h1>HALO, SAYA<br><span>DEVIA.</span></h1>
 <p>Student • Programmer • Networking Enthusiast</p>
 <p>Selamat datang di e-portfolio saya. Di sini saya menyimpan profil, skill, project, serta kumpulan tugas sekolah.</p>
+<div class="buttons"><a class="btn primary" href="#projects">Lihat Project</a><a class="btn" href="#tasks">Lihat Tugas</a></div>
 </div>
 <div class="profile-photo"><img src="foto-profil.jpg" alt="Foto Profil"></div>
 </div>
 </section>
 
 <section id="about"><div class="container">
-<div class="kicker">01 — ABOUT</div><h2 class="title">Tentang Saya</h2>
+<div class="kicker">// 01 — ABOUT</div><h2 class="title">Tentang Saya</h2>
 <p class="subtitle"></p>
 <div class="about">
 <div class="card"><p>Saya adalah seorang pelajar yang tertarik pada dunia teknologi. Saya senang mempelajari pemrograman, jaringan komputer, keamanan jaringan, dan membuat project secara langsung, selain itu saya mempunyai ketertarikan dibidang seni.</p></div>
@@ -121,7 +78,7 @@ Turning ideas into projects and learning into experience.</div>
 </div></div></section>
 
 <section id="skills"><div class="container">
-<div class="kicker">02 — SKILLS</div><h2 class="title">Technical Skills</h2><p class="subtitle">Teknologi dan bidang yang sedang saya pelajari.</p>
+<div class="kicker">// 02 — SKILLS</div><h2 class="title">Technical Skills</h2><p class="subtitle">Teknologi dan bidang yang sedang saya pelajari.</p>
 <div class="skills">
 <div class="skill"><b>Basic Web Development</b><span>Currently Learning</span></div>
 <div class="skill"><b>Cisco</b><span>Routing & Network Configuration</span></div>
@@ -131,7 +88,7 @@ Turning ideas into projects and learning into experience.</div>
 </div></div></section>
 
 <section id="projects"><div class="container">
-<div class="kicker">03 — PROJECTS</div><h2 class="title">My Projects</h2><p class="subtitle">Project yang pernah atau sedang saya kerjakan.</p>
+<div class="kicker">// 03 — PROJECTS</div><h2 class="title">My Projects</h2><p class="subtitle">Project yang pernah atau sedang saya kerjakan.</p>
 <div class="projects">
 <article class="project">
     <div class="icon">🕷️</div>
@@ -202,7 +159,7 @@ Turning ideas into projects and learning into experience.</div>
 </article>
 </div>
 <section id="task"><div class="container">
-<div class="kicker">03 — TUGAS</div><h2 class="title">Kumpulan tugas</h2><p class="subtitle">Tugas dan Project yang saya kerjakan.</p>
+<div class="kicker">// 03 — TUGAS</div><h2 class="title">Kumpulan tugas</h2><p class="subtitle">Tugas dan Project yang saya kerjakan.</p>
 <div class="subjects">
 <article class="subject"><div class="icon">🖥️</div><h3>ASJ</h3><p>Administrasi Sistem Jaringan.</p><div class="task-list">
 <div class="task"><span>Infografis Topologi</span><a href="https://drive.google.com/file/d/1-epSekyRxg5PPL3XKO1QJaEGF1DDBIMC/view?usp=drive_link" target="_blank">Google Drive →</a></div>
@@ -224,7 +181,7 @@ Turning ideas into projects and learning into experience.</div>
 </section>
 
 <section id="contact"><div class="container"><div class="contact">
-<div class="kicker">06 — CONTACT</div><h2 class="title">Let's Connect</h2>
+<div class="kicker">// 06 — CONTACT</div><h2 class="title">Let's Connect</h2>
 <p>Hubungi saya melalui media sosial.</p>
 <div class="buttons" style="justify-content:center">
 <a class="btn" href="https://www.instagram.com/lignefora?igsh=d2VscXlvMHRhNWRq&igsi=d2VscXlvMHRhNWRq" target="_blank">Instagram</a>
