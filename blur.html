@@ -45,7 +45,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 <p>1. Klik <b>📷 Mulai Kamera</b>.</p>
 <p>2. Izinkan akses kamera.</p>
 <p>3. Buat gesture <b>✌️</b> dengan telunjuk dan jari tengah terbuka.</p>
-<p>4. Saat gesture terdeteksi, wajah yang terdeteksi akan dibuat blur.</p>
+<p>4. Saat gesture terdeteksi, seluruh tampilan kamera akan dibuat blur.</p>
 </div>
 
 <script type="module">
@@ -242,22 +242,35 @@ function processFrame(){
                 }
             }
 
-            // Selalu gambar video mirror sebagai dasar.
+            // Tampilkan seluruh kamera sebagai dasar.
+            // Kalau gesture ✌️ aktif, seluruh tampilan kamera diblur,
+            // bukan hanya wajah.
             ctx.save();
             ctx.translate(canvas.width,0);
             ctx.scale(-1,1);
-            ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+            if(active){
+                ctx.filter="blur(18px)";
+                ctx.drawImage(
+                    video,
+                    -10,-10,
+                    canvas.width+20,
+                    canvas.height+20
+                );
+            }else{
+                ctx.filter="none";
+                ctx.drawImage(
+                    video,
+                    0,0,
+                    canvas.width,
+                    canvas.height
+                );
+            }
+
             ctx.restore();
 
             if(active){
-                const faces=faceDetector.detectForVideo(video,performance.now());
-
-                for(const face of (faces.detections||[])){
-                    const box=getBox(face);
-                    if(box)blurFace(box);
-                }
-
-                statusText.textContent="😶‍🌫️ BLUR AKTIF — wajah sedang diblur!";
+                statusText.textContent="😶‍🌫️ BLUR AKTIF — SELURUH LAYAR DIBLUR!";
             }else{
                 statusText.textContent="✌️ Kamera aktif — buat gesture dua jari!";
             }
