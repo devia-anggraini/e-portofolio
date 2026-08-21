@@ -296,9 +296,12 @@ async function startCamera() {
 
         if (!mediaPipeLoaded) {
 
+            statusText.textContent =
+                "📷 Kamera aktif! Memuat deteksi tangan...";
+
             const vision =
                 await import(
-                    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22"
+                    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/+esm"
                 );
 
 
@@ -368,16 +371,22 @@ async function startCamera() {
 
     } catch (error) {
 
-        console.error(error);
+        console.error("Spider-Man page error:", error);
 
+        // Jika kamera sudah berhasil dibuka tetapi MediaPipe gagal dimuat,
+        // jangan menampilkan pesan seolah-olah kameranya gagal.
+        if (cameraStream) {
+            statusText.textContent =
+                "⚠️ Kamera aktif, tetapi deteksi tangan gagal dimuat. Coba refresh halaman.";
+            return;
+        }
 
         statusText.textContent =
             "❌ Kamera tidak dapat digunakan.";
 
-
         alert(
             "Kamera tidak bisa dibuka.\n\n" +
-            "Pastikan kamu mengizinkan akses kamera."
+            "Pastikan izin kamera sudah diaktifkan untuk situs ini."
         );
 
     }
@@ -457,33 +466,35 @@ video.addEventListener(
 // ========================================
 
 function isSpiderManPose(hand) {
-    // Deteksi berdasarkan jarak ujung jari ke pergelangan,
-    // jadi tetap bekerja walaupun tangan sedikit miring.
-    const wrist = hand[0];
+
+    // Gesture Spider-Man: telunjuk + kelingking terbuka,
+    // jari tengah + manis terlipat. Deteksi dibuat toleran
+    // terhadap tangan yang sedikit miring.
 
     function distance(a, b) {
         return Math.hypot(a.x - b.x, a.y - b.y);
     }
 
-    function isFingerUp(tipIndex, pipIndex) {
-        const tip = hand[tipIndex];
-        const pip = hand[pipIndex];
-        return distance(tip, wrist) > distance(pip, wrist) * 1.08;
+    function fingerExtended(tip, pip, mcp) {
+        const tipFromMcp = distance(tip, mcp);
+        const pipFromMcp = distance(pip, mcp);
+        return tipFromMcp > pipFromMcp * 1.12;
     }
 
-    function isFingerFolded(tipIndex, pipIndex) {
-        const tip = hand[tipIndex];
-        const pip = hand[pipIndex];
-        return distance(tip, wrist) < distance(pip, wrist) * 1.02;
+    function fingerFolded(tip, pip, mcp) {
+        const tipFromMcp = distance(tip, mcp);
+        const pipFromMcp = distance(pip, mcp);
+        return tipFromMcp < pipFromMcp * 1.12;
     }
 
-    const indexUp = isFingerUp(8, 6);
-    const pinkyUp = isFingerUp(20, 18);
-    const middleDown = isFingerFolded(12, 10);
-    const ringDown = isFingerFolded(16, 14);
+    const indexUp = fingerExtended(hand[8], hand[6], hand[5]);
+    const middleDown = fingerFolded(hand[12], hand[10], hand[9]);
+    const ringDown = fingerFolded(hand[16], hand[14], hand[13]);
+    const pinkyUp = fingerExtended(hand[20], hand[18], hand[17]);
 
-    return indexUp && pinkyUp && middleDown && ringDown;
+    return indexUp && middleDown && ringDown && pinkyUp;
 }
+
 
 
 // ========================================
