@@ -457,72 +457,32 @@ video.addEventListener(
 // ========================================
 
 function isSpiderManPose(hand) {
+    // Deteksi berdasarkan jarak ujung jari ke pergelangan,
+    // jadi tetap bekerja walaupun tangan sedikit miring.
+    const wrist = hand[0];
 
-    const indexTip =
-        hand[8];
+    function distance(a, b) {
+        return Math.hypot(a.x - b.x, a.y - b.y);
+    }
 
-    const indexPip =
-        hand[6];
+    function isFingerUp(tipIndex, pipIndex) {
+        const tip = hand[tipIndex];
+        const pip = hand[pipIndex];
+        return distance(tip, wrist) > distance(pip, wrist) * 1.08;
+    }
 
+    function isFingerFolded(tipIndex, pipIndex) {
+        const tip = hand[tipIndex];
+        const pip = hand[pipIndex];
+        return distance(tip, wrist) < distance(pip, wrist) * 1.02;
+    }
 
-    const middleTip =
-        hand[12];
+    const indexUp = isFingerUp(8, 6);
+    const pinkyUp = isFingerUp(20, 18);
+    const middleDown = isFingerFolded(12, 10);
+    const ringDown = isFingerFolded(16, 14);
 
-    const middlePip =
-        hand[10];
-
-
-    const ringTip =
-        hand[16];
-
-    const ringPip =
-        hand[14];
-
-
-    const pinkyTip =
-        hand[20];
-
-    const pinkyPip =
-        hand[18];
-
-
-    // Telunjuk naik
-
-    const indexUp =
-        indexTip.y <
-        indexPip.y;
-
-
-    // Kelingking naik
-
-    const pinkyUp =
-        pinkyTip.y <
-        pinkyPip.y;
-
-
-    // Jari tengah dilipat
-
-    const middleDown =
-        middleTip.y >
-        middlePip.y;
-
-
-    // Jari manis dilipat
-
-    const ringDown =
-        ringTip.y >
-        ringPip.y;
-
-
-    return (
-
-        indexUp &&
-        pinkyUp &&
-        middleDown &&
-        ringDown
-
-    );
-
+    return indexUp && pinkyUp && middleDown && ringDown;
 }
 
 
